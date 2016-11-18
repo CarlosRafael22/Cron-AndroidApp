@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "4885211469",
+    "firebase_url": "https://chron-399c2.firebaseio.com",
+    "project_id": "chron-399c2",
+    "storage_bucket": "chron-399c2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:4885211469:android:e25b1bb4fb9fa685",
+        "android_client_info": {
+          "package_name": "chron.carlosrafael.chatapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "4885211469-quhtihbat16jo4t4s6ie7mlb4eorbuti.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "chron.carlosrafael.chatapp",
+            "certificate_hash": "E36100614E3FE04EE5238D4D89ABCA47403711C7"
+          }
+        },
+        {
+          "client_id": "4885211469-fkpvjpri46mnsdnhfutfttkakk90qcei.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtOTrFG-mLG5e7447zfE4jkY-Pi1arAuw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "4885211469-fkpvjpri46mnsdnhfutfttkakk90qcei.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

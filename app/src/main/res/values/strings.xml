@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">ChatApp</string>
+    <string name="sign_out">ChatApp</string>
+    <string name="fresh_config">ChatApp</string>
+    <string name="invite_menu_label">ChatApp</string>
+    <string name="cause_crash">ChatApp</string>
+
+</resources>
