@@ -62,8 +62,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             Map messageMap = remoteMessage.getData();
             Log.d(TAG, "FCM Data Message: " + messageMap.get("message"));
             Log.d(TAG, "FCM Data Username: " + messageMap.get("username"));
-            //Log.d(TAG, "FCM Data MessageKey: " + messageMap.get("messageKey"));
+            Log.d(TAG, "FCM Data MessageKey: " + messageMap.get("messageKey"));
             Log.d(TAG, "NotificationList: " + NotificationHandler.keys_messagesAlreadyReceived.size());
+            if(NotificationHandler.keys_messagesAlreadyReceived.contains(messageMap.get("messageKey"))){
+                Log.d(TAG, "Notification nao criou para: " + NotificationHandler.keys_messagesAlreadyReceived.get(NotificationHandler.keys_messagesAlreadyReceived.size() - 1));
+            }
 
 
 
@@ -71,7 +74,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             //Tanto com o app no Foreground quanto no Background
             //Entao aqui eu vejo, se ele nao tiver no Foreground eu crio a notificacao
             String notification_author = (String) messageMap.get("username");
-            if(!ForegroundHandler.isActivityVisible() && !notification_author.equalsIgnoreCase(NotificationHandler.current_user)){
+            if(!ForegroundHandler.isActivityVisible() && !notification_author.equalsIgnoreCase(NotificationHandler.current_user)
+                    && !NotificationHandler.keys_messagesAlreadyReceived.contains(messageMap.get("messageKey"))){
                 sendNotification((String) messageMap.get("message"), (String) messageMap.get("username"));
             }
 

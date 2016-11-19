@@ -101,6 +101,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             }
         }
 
+        //TODA VEZ QUE ELE ENTRAR ELE VAI LIMPAR O NotificationHandler.keys_messagesAlreadyReceived
+        // PARA NAO FICAR ACUMULANDO AS KEYS DAS MSGS Q CHEGARAM
+        NotificationHandler.keys_messagesAlreadyReceived.clear();
+        Log.d(TAG, "NotificationList ZEROU: " + NotificationHandler.keys_messagesAlreadyReceived.size());
+
 
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -251,21 +256,30 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     public void sendMessageFirebase(String messageText, String username, String photoUrl){
 
         Message friendlyMessage = new Message(messageText, username, photoUrl);
-        mFirebaseDatabaseReference.child(MESSAGES_CHILD)
-                .push().setValue(friendlyMessage);
+        DatabaseReference ref_addedChild = mFirebaseDatabaseReference.child(MESSAGES_CHILD).push();
+
+        // http://stackoverflow.com/questions/37094631/get-the-pushed-id-for-specific-value-in-firebase-android
+        // A terceira reposta resolveu o problema de que tava pegando uniqueID diferentes
+
+        //Pegando a uniqueID da msg pra ser parametro da Notification e ver se tem q criar ela ou nao
+        String messageKey = ref_addedChild.getKey();
+        //Salvando no banco
+        ref_addedChild.setValue(friendlyMessage);
+        Log.d(TAG, "messageKey SEND:" + messageKey);
 
         //Tentando mandar a notification pro banco
         //ERA PRA SER O USERNAME DE QUEM TA RECEBENDO MAS COMO GAMBIARRA(JA Q NAO TO FAZENDO CHAT POR TOPIC) TO MANDANDO O USER QUE ENVIA
-        sendNotificationToUser(username, messageText);
+        sendNotificationToUser(username, messageText, messageKey);
         mMessageEditText.setText("");
     }
 
 
-    public void sendNotificationToUser(String user, final String message) {
+    public void sendNotificationToUser(String user, String message, String messageKey) {
 
         Map notification = new HashMap<>();
         notification.put("username", user);
         notification.put("message", message);
+        notification.put("messageKey", messageKey);
 
         //Gambiarra pra ele nao receber notificacao dele mesmo
         NotificationHandler.current_user = user;
