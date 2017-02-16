@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -29,6 +30,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
 
     private static final String TAG = "MainActivity";
-    public static final String MESSAGES_CHILD = "messages";
+    public static final String MESSAGES_CHILD = "chatMessages/c14p18";
     public static final String NOTIFICATIONS_CHILD = "notificationRequests";
     private static final int REQUEST_INVITE = 1;
     public static final int DEFAULT_MSG_LENGTH_LIMIT = 10;
@@ -67,10 +71,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
     private Button mSendButton;
     private EditText mMessageEditText;
+    private TextView userInfoTxtView;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
+
+    // Para mandter um listener do estado ao fazer login localmente com email ou senha
+    private FirebaseAuth.AuthStateListener mAuthListener;
+
 
     //    Initialize the Firebase Realtime Database and add a listener to handle changes made to the data. Update the RecyclerView adapter so new messages will be shown.*/
     private DatabaseReference mFirebaseDatabaseReference;
@@ -83,10 +92,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     private String mPhotoUrl;
 
 
+    private UserLoggedIn userLoggedIn;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Calls to setPersistenceEnabled() must be made before any other usage of FirebaseDatabase instance
+        //Tentando setar pra que ele possa armazenar as mensagens localmente
+        if(!firebaseAccessed){
+            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+            firebaseAccessed = true;
+        }
+
+        userLoggedIn = UserLoggedIn.getUserLoggedIn(getApplicationContext());
 
 
         //Primeiro vai ver se foi aberto por causa de um Intent
@@ -107,9 +128,28 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         Log.d(TAG, "NotificationList ZEROU: " + NotificationHandler.keys_messagesAlreadyReceived.size());
 
 
+
+//        mAuthListener = new FirebaseAuth.AuthStateListener() {
+//            @Override
+//            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+//                FirebaseUser user = firebaseAuth.getCurrentUser();
+//                if (user != null) {
+//                    // User is signed in
+//                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+//                } else {
+//                    // User is signed out
+//                    Log.d(TAG, "onAuthStateChanged:signed_out");
+//                }
+//                // ...
+//            }
+//        };
+
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
+        Log.d(TAG, "FirebaseUser: " + mFirebaseUser);
+        Log.d(TAG, "FirebaseUser UserloggedIn: " + userLoggedIn.getCurrentFirebaseUser());
+        Log.d(TAG, "UserloggedIn: " + userLoggedIn.getDjangoUser());
         if (mFirebaseUser == null) {
             // Not signed in, launch the Sign In activity
             startActivity(new Intent(this, SignInActivity.class));
@@ -137,19 +177,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
 
 
-        //Calls to setPersistenceEnabled() must be made before any other usage of FirebaseDatabase instance
-        //Tentando setar pra que ele possa armazenar as mensagens localmente
-        if(!firebaseAccessed){
-            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-            firebaseAccessed = true;
-        }
+
 
 
         // New child entries
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
-        //TENTANDO SUBSCREVER PARA O TOPIC DA CONVERSA
-        FirebaseMessaging.getInstance().subscribeToTopic(TOPIC_NAME);
+//        //TENTANDO SUBSCREVER PARA O TOPIC DA CONVERSA
+//        FirebaseMessaging.getInstance().subscribeToTopic(TOPIC_NAME);
 
 
 //        mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -186,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
                 viewHolder.messageTextView.setText(friendlyMessage.getText());
-                viewHolder.messengerTextView.setText(friendlyMessage.getName());
+                viewHolder.messengerTextView.setText(friendlyMessage.getNameSender());
                 if (friendlyMessage.getPhotoUrl() == null) {
                     viewHolder.messengerImageView
                             .setImageDrawable(ContextCompat
@@ -248,6 +283,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         });
 
 
+        userInfoTxtView = (TextView) findViewById(R.id.userInfoTxtView);
+
+        // Pegando algumas infos do UserLoggedIn para mostrar no chat e testar
+        JSONObject user = userLoggedIn.getDjangoUser();
+        if(user != null){
+            try {
+                String username = user.getJSONObject("user").getString("username");
+                String pacienteId = user.getJSONObject("user").getString("pacienteId");
+
+                userInfoTxtView.setText(username+" com id: "+pacienteId);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+
 
     }
 
@@ -255,7 +306,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
     public void sendMessageFirebase(String messageText, String username, String photoUrl){
 
-        Message friendlyMessage = new Message(messageText, username, photoUrl);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String firebaseUID = user.getUid();
+
+        Message friendlyMessage = new Message(messageText, username, photoUrl, firebaseUID);
         DatabaseReference ref_addedChild = mFirebaseDatabaseReference.child(MESSAGES_CHILD).push();
 
         // http://stackoverflow.com/questions/37094631/get-the-pushed-id-for-specific-value-in-firebase-android
@@ -321,12 +375,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     @Override
     protected void onStart() {
         super.onStart();
+        //mFirebaseAuth.addAuthStateListener(mAuthListener);
         mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+
+        if (mAuthListener != null) {
+            mFirebaseAuth.removeAuthStateListener(mAuthListener);
+        }
 
         if(mGoogleApiClient.isConnected()){
             mGoogleApiClient.disconnect();

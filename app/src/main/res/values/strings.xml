@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">ChatApp</string>
-    <string name="sign_out">ChatApp</string>
-    <string name="fresh_config">ChatApp</string>
+    <string name="sign_out">SignOut</string>
+    <string name="fresh_config">Config</string>
     <string name="invite_menu_label">ChatApp</string>
     <string name="cause_crash">ChatApp</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

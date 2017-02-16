@@ -7,8 +7,9 @@ package chron.carlosrafael.chatapp;
 public class Message {
 
     private String text;
-    private String name;
+    private String nameSender;
     private String photoUrl;
+    private String idSender;
 
     //Testando pra ele verificar isso ao criar uma notificacao
     //Se tiver a mesma ID de uma msg ja vista ele nao cria
@@ -17,10 +18,11 @@ public class Message {
     public Message() {
     }
 
-    public Message(String text, String name, String photoUrl) {
+    public Message(String text, String name, String photoUrl, String idSender) {
         this.text = text;
-        this.name = name;
+        this.nameSender = name;
         this.photoUrl = photoUrl;
+        this.idSender = idSender;
     }
 
     public String getText() {
@@ -31,13 +33,13 @@ public class Message {
         this.text = text;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+//    public String getName() {
+//        return nameSender;
+//    }
+//
+//    public void setName(String name) {
+//        this.nameSender = name;
+//    }
 
     public String getPhotoUrl() {
         return photoUrl;
@@ -53,5 +55,21 @@ public class Message {
 
     public void setFirebaseID(String firebaseID) {
         this.firebaseID = firebaseID;
+    }
+
+    public String getIdSender() {
+        return idSender;
+    }
+
+    public void setIdSender(String idSender) {
+        this.idSender = idSender;
+    }
+
+    public String getNameSender() {
+        return nameSender;
+    }
+
+    public void setNameSender(String nameSender) {
+        this.nameSender = nameSender;
     }
 }
