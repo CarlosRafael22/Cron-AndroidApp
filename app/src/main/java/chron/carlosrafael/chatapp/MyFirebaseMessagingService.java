@@ -133,7 +133,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
 
         //Quando o usuario clicar ele vai pra o MainActivity
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, HomeActivity.class);
 
         //Botando um Extra para quando ele abrir por um Intent vindo do notification ele para de acumular as
         //mensagens de notificacao

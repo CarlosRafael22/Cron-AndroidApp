@@ -48,14 +48,17 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import chron.carlosrafael.chatapp.ForegroundHandler;
-import chron.carlosrafael.chatapp.MainActivity;
+import chron.carlosrafael.chatapp.HomeActivity;
+import chron.carlosrafael.chatapp.Interfaces;
 import chron.carlosrafael.chatapp.Message;
 import chron.carlosrafael.chatapp.MessageViewHolder;
 import chron.carlosrafael.chatapp.Models.Chat;
+import chron.carlosrafael.chatapp.Models.ChatFirebase;
 import chron.carlosrafael.chatapp.NotificationHandler;
 import chron.carlosrafael.chatapp.R;
 import chron.carlosrafael.chatapp.SignInActivity;
@@ -69,7 +72,7 @@ import chron.carlosrafael.chatapp.UserLoggedIn;
  * Use the {@link CoachChatFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class CoachChatFragment extends Fragment implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+public class CoachChatFragment extends Fragment implements HomeActivity.ChatFirebaseReceivedInterface, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -90,8 +93,8 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
     private static boolean firebaseAccessed = false;
 
 
-    private static final String TAG = "MainActivity";
-    public static final String MESSAGES_CHILD = "chatMessages/c14p18";
+    private static final String TAG = "CoachChatFragment";
+    public static String MESSAGES_CHILD = "chatMessages/c5p14";
     public static final String CHATS_CHILD = "chats";
     public static final String NOTIFICATIONS_CHILD = "notificationRequests";
     private static final int REQUEST_INVITE = 1;
@@ -137,7 +140,15 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
 
     public static final String BASE_URL = "http://54.202.76.189:8000/";
 
+
     //private OnFragmentInteractionListener mListener;
+    // Serve para avisar o HomeActivity que o fragmento foi criado
+    private Interfaces.OnFragmentCreatedListener createdFragListener;
+
+    // Usada para fazer com que avise ao HomeActivity que o fragmento foi criado pela primeira vez
+    // O onCreate e onCreateView sao executados todas as vezes q o Fragmento vai ser visto, porem
+    // so queremos que ele mande o aviso na primeira vez que eh executado para pegar os chats
+    private static boolean CREATED_FOR_THE_FIRST_TIME = false;
 
     public CoachChatFragment() {
         // Required empty public constructor
@@ -168,6 +179,8 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+
     }
 
     @Override
@@ -177,6 +190,7 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
         View rootView = inflater.inflate(R.layout.fragment_coach_chat, container, false);
 
         userLoggedIn = UserLoggedIn.getUserLoggedIn(getContext());
+        Log.d(TAG, "INICIANDO COACHCHAT COM USERLOGGEDIN: "+userLoggedIn);
 
 //        Log.d(TAG, "Chamando Task: ");
 //        GetChatsTask getChatsTask = new GetChatsTask(getActivity());
@@ -188,9 +202,9 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
         //Se for ele checa se esse intent veio da Notification
         //Se tiver vindo ele para de acumular as mensagens da BigStyle Notification
         Intent intent = getActivity().getIntent();
-        if(intent != null && intent.getExtras() != null){
+        if (intent != null && intent.getExtras() != null) {
             Log.d(TAG, "Identificou Intent!");
-            if(intent.getBooleanExtra("fromNotification", false)){
+            if (intent.getBooleanExtra("fromNotification", false)) {
                 NotificationHandler.emptyNotificationStack();
                 Log.d(TAG, "Era pra ter limpado!");
             }
@@ -249,21 +263,8 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
         mMessageRecyclerView.setLayoutManager(mLinearLayoutManager);
 
 
-
-        //Calls to setPersistenceEnabled() must be made before any other usage of FirebaseDatabase instance
-        //Tentando setar pra que ele possa armazenar as mensagens localmente
-        if(!firebaseAccessed){
-            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-            firebaseAccessed = true;
-        }
-
-
         // New child entries
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
-
-//        //TENTANDO SUBSCREVER PARA O TOPIC DA CONVERSA
-//        FirebaseMessaging.getInstance().subscribeToTopic(TOPIC_NAME);
-
 
 //        mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
 //            @Override
@@ -278,6 +279,8 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
 //            }
 //        });
 
+        ArrayList<ChatFirebase> chatsPaciente = userLoggedIn.getChatsFirebase();
+        if(chatsPaciente != null) {
         mFirebaseAdapter = new FirebaseRecyclerAdapter<Message,
                 MessageViewHolder>(
                 Message.class,
@@ -314,8 +317,6 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
         };
 
 
-
-
         //AQUI NAO TEM HAVER COM POPULAR O ADAPTER DE ACORDO COM O BANCO MAS SIM
         // EM COMO O ADPATER VAI SE COMPORTAR QD O USUARIO TIVER SCROLLING E TAL
 
@@ -344,6 +345,7 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
         mMessageRecyclerView.setAdapter(mFirebaseAdapter);
 
 
+    }
 
 
         //PEGANDO CONTEUDO Q FOI DIGITADO PARA SER ENVIADO
@@ -360,27 +362,109 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
             }
         });
 
+        if(!CREATED_FOR_THE_FIRST_TIME){
+            // Avisa para o HomeActivity que o fragment acabou de ser criado
+            createdFragListener.onFragmentCreated(this.getClass().getSimpleName());
 
-        userInfoTxtView = (TextView) rootView.findViewById(R.id.userInfoTxtView);
-
-        // Pegando algumas infos do UserLoggedIn para mostrar no chat e testar
-        JSONObject user = userLoggedIn.getDjangoUser();
-        if(user != null){
-            try {
-                String username = user.getJSONObject("user").getString("username");
-                String pacienteId = user.getJSONObject("user").getString("pacienteId");
-
-                userInfoTxtView.setText(username+" com id: "+pacienteId);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            // Seta para true para que ele nao avise mais ao HomeActivity que foi criado e assim
+            // nao execute o onFragmentCreated no HomeActivity
+            CREATED_FOR_THE_FIRST_TIME = true;
         }
-
 
         return rootView;
     }
 
+    @Override
+    public void receivedChatFirebase() {
 
+        //Toast.makeText(getActivity(), "ATUALIZANDO CHAT", Toast.LENGTH_LONG).show();
+
+        // VOU PEGAR OS CHATS DO PACIENTE PARA PEGAR O ID E CARREGAR AS MENSAGENS
+        // VAI RETORNAR UMA LISTA ENTAO VAMOS PEGAR SO O PRIMEIRO CHAT AGORA
+        ArrayList<ChatFirebase> chatsPaciente = userLoggedIn.getChatsFirebase();
+        if(chatsPaciente.size() > 0) {
+            //String chatID = chatsPaciente.get(0).getChatID();
+
+            //VAI PEAR O CHAT QUE TEM QTD DE PESSOAS = 2, OU SEJA, EH UM CHAT INDIVIDUAL COM O COACH
+            String chatID = null;
+            // VOU FAZER UM FOR PELAS CONVERSAS DA PESSOA PARA SABER QUAL DELAS EH DE GRUPO
+            // SE A QTD DE PARTICIPANTES FOR 2 ENTAO EH UMA CONVERSA INDIVIDUAL
+            for (int i = 0; i < chatsPaciente.size(); i++) {
+                if (chatsPaciente.get(i).getParticipantes().size() == 2) {
+                    chatID = chatsPaciente.get(i).getChatID();
+                }
+            }
+
+
+            Log.d(TAG, "SETANDO O MESSAGES_CHILD: ");
+            MESSAGES_CHILD = "chatMessages/"+chatID;
+
+
+            mFirebaseAdapter = new FirebaseRecyclerAdapter<Message,
+                    MessageViewHolder>(
+                    Message.class,
+                    R.layout.item_message,
+                    MessageViewHolder.class,
+                    mFirebaseDatabaseReference.child(MESSAGES_CHILD)) {
+
+                @Override
+                protected void populateViewHolder(MessageViewHolder viewHolder,
+                                                  Message friendlyMessage, int position) {
+
+
+                    String key = this.getRef(position).getKey();
+                    Log.d(TAG, "MessageKey:" + key);
+
+                    //Armazenando msgKey para nao criar uma notificacao para ela
+                    NotificationHandler.keys_messagesAlreadyReceived.add(key);
+
+
+                    mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                    viewHolder.messageTextView.setText(friendlyMessage.getText());
+                    viewHolder.messengerTextView.setText(friendlyMessage.getNameSender());
+                    if (friendlyMessage.getPhotoUrl() == null) {
+                        viewHolder.messengerImageView
+                                .setImageDrawable(ContextCompat
+                                        .getDrawable(getActivity(),
+                                                R.drawable.ic_account_circle_black_36dp));
+                    } else {
+                        Glide.with(getActivity())
+                                .load(friendlyMessage.getPhotoUrl())
+                                .into(viewHolder.messengerImageView);
+                    }
+                }
+            };
+
+            Toast.makeText(getContext(),"Atualizando chat", Toast.LENGTH_SHORT).show();
+
+            //AQUI NAO TEM HAVER COM POPULAR O ADAPTER DE ACORDO COM O BANCO MAS SIM
+            // EM COMO O ADPATER VAI SE COMPORTAR QD O USUARIO TIVER SCROLLING E TAL
+
+            //Register a new observer to listen for data changes
+            //RecyclerView.AdapterDataObserver -> Observer base class for watching changes to an RecyclerView.Adapter
+            mFirebaseAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+                @Override
+                public void onItemRangeInserted(int positionStart, int itemCount) {
+                    super.onItemRangeInserted(positionStart, itemCount);
+                    int friendlyMessageCount = mFirebaseAdapter.getItemCount();
+                    int lastVisiblePosition =
+                            mLinearLayoutManager.findLastCompletelyVisibleItemPosition();
+                    // If the recycler view is initially being loaded or the
+                    // user is at the bottom of the list, scroll to the bottom
+                    // of the list to show the newly added message.
+                    if (lastVisiblePosition == -1 ||
+                            (positionStart >= (friendlyMessageCount - 1) &&
+                                    lastVisiblePosition == (positionStart - 1))) {
+                        mMessageRecyclerView.scrollToPosition(positionStart);
+                    }
+                }
+            });
+
+            mMessageRecyclerView.setLayoutManager(mLinearLayoutManager);
+            //NAO ESQUECE DE SETAR O ADAPTER!!
+            mMessageRecyclerView.setAdapter(mFirebaseAdapter);
+        }
+    }
 
     public void sendMessageFirebase(String messageText, String username, String photoUrl){
 
@@ -506,22 +590,23 @@ public class CoachChatFragment extends Fragment implements GoogleApiClient.OnCon
 //        }
 //    }
 //
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        if (context instanceof OnFragmentInteractionListener) {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
-//    }
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        // PEGANDO O LISTENER A PARTIR DO CONTEXT DO HOMEACTIVITY
+        if (context instanceof Interfaces.OnFragmentCreatedListener) {
+            createdFragListener = (Interfaces.OnFragmentCreatedListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
 
-//    @Override
-//    public void onDetach() {
-//        super.onDetach();
-//        mListener = null;
-//    }
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        createdFragListener = null;
+    }
 
     /**
      * This interface must be implemented by activities that contain this

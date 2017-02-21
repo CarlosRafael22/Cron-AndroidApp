@@ -28,6 +28,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
@@ -94,7 +96,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                 if (user != null) {
                     // User is signed in
                     Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-
+                    Log.d(TAG, "VAI MUDAR ACTIVITY PELO LISTENER " + user.getUid());
                     // Mandando para a main Activity
                     startActivity(new Intent(SignInActivity.this, HomeActivity.class));
                     finish();
@@ -132,14 +134,14 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 
         loginLocalButton = (Button) findViewById(R.id.logInButton);
 
-        signInButton = (SignInButton) findViewById(R.id.sign_in_button);
-
-        signInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                signInGoogle();
-            }
-        });
+//        signInButton = (SignInButton) findViewById(R.id.sign_in_button);
+//
+//        signInButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                signInGoogle();
+//            }
+//        });
 
         loginLocalButton.setOnClickListener(new View.OnClickListener() {
 
@@ -207,28 +209,28 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 
     }
 
-    //Starting the intent prompts the user to select a Google account to sign in with.
-    // If you requested scopes beyond profile, email, and openid, the user is also prompted to grant access to the requested resources.
-    private void signInGoogle() {
-//        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-//        startActivityForResult(signInIntent, RC_SIGN_IN);
-        startActivity(new Intent(SignInActivity.this, HomeActivity.class));
-        finish();
-    }
+//    //Starting the intent prompts the user to select a Google account to sign in with.
+//    // If you requested scopes beyond profile, email, and openid, the user is also prompted to grant access to the requested resources.
+//    private void signInGoogle() {
+////        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+////        startActivityForResult(signInIntent, RC_SIGN_IN);
+//        startActivity(new Intent(SignInActivity.this, HomeActivity.class));
+//        finish();
+//    }
 
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //In the activity's onActivityResult method, retrieve the sign-in result with getSignInResultFromIntent
-
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
-        if (requestCode == RC_SIGN_IN) {
-            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            handleSignInResult(result);
-        }
-    }
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        //In the activity's onActivityResult method, retrieve the sign-in result with getSignInResultFromIntent
+//
+//        super.onActivityResult(requestCode, resultCode, data);
+//
+//        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+//        if (requestCode == RC_SIGN_IN) {
+//            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+//            handleSignInResult(result);
+//        }
+//    }
 
 
     //After you retrieve the sign-in result, you can check if sign-in succeeded with the isSuccess method.
@@ -267,7 +269,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                             Toast.makeText(SignInActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         } else {
-                            startActivity(new Intent(SignInActivity.this, MainActivity.class));
+                            startActivity(new Intent(SignInActivity.this, HomeActivity.class));
                             finish();
                         }
                     }
@@ -342,13 +344,11 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 
             // TODO: attempt authentication against a network service.
 
-
             if (params.length == 0) {
 
                 return null;
 
             }
-
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
@@ -588,7 +588,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 
 
                             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                            Log.d(TAG, "FirebaseUser: " + user);
+                            Log.d(TAG, "FirebaseThread FirebaseUser: " + user);
                             if (user != null) {
                                 // Name, email address, and profile photo Url
                                 String name = user.getDisplayName();
@@ -617,10 +617,10 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         @Override
         protected void onPostExecute(Boolean response) {
             Toast.makeText(getApplicationContext(), "Rodou a segunda thread", Toast.LENGTH_LONG).show();
-            GetChatsTask getChatsTask = new GetChatsTask(this.callingActivity);
-            getChatsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            startActivity(new Intent(SignInActivity.this, HomeActivity.class));
-            finish();
+//            GetChatsTask getChatsTask = new GetChatsTask(this.callingActivity);
+//            getChatsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+//            startActivity(new Intent(SignInActivity.this, HomeActivity.class));
+//            finish();
 
         }
 
