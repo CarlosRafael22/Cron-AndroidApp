@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="receita_id"/>
+    <item type="id" name="nome_receita"/>
+    <item type="id" name="categoria"/>
+    <item type="id" name="tempo_de_preparo"/>
+    <item type="id" name="nivel_de_dificuldade"/>
+</resources>
