@@ -216,7 +216,7 @@ public class ReceitaFragment extends Fragment {
                                         String descricao_passo_preparo = passo_PreparoJSON.getString("descricao");
                                         int passo_preparo_id = passo_PreparoJSON.getInt("id");
 
-                                        // CRIANDO OBJETO INGREDIENTE
+                                        // CRIANDO OBJETO PASSO_DA_RECEITA
                                         Passo_da_Receita passo_preparo = new Passo_da_Receita(passo_preparo_id, descricao_passo_preparo);
                                         modo_de_preparoSubparte.add(passo_preparo);
                                     }
