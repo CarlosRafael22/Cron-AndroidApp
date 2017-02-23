@@ -7,17 +7,24 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import chron.carlosrafael.chatapp.Models.Ingrediente;
 import chron.carlosrafael.chatapp.Models.Parte_da_Receita;
@@ -48,6 +55,17 @@ public class ReceitaActivity extends AppCompatActivity {
         actionBar.setTitle(receita.getNome_receita());
 
         LinearLayout activity_receita = (LinearLayout) settingViewProgramatically(this, receita);
+
+        LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View activityView = inflater.inflate(R.layout.activity_receita, null);
+
+//        ((ViewGroup)activity_receita.getParent()).removeView(activity_receita);
+        ScrollView scrollView = (ScrollView) activityView.findViewById(R.id.scrollView_Receita);
+        scrollView.addView(activity_receita);
+        //activityView.addView(activity_receita);
+
+
+        //ScrollView root_scroll = (ScrollView) activityView.findViewById(R.id.activity_receita);
 
 //        LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 //        View activityView = inflater.inflate(R.layout.activity_receita, null);
@@ -194,7 +212,7 @@ public class ReceitaActivity extends AppCompatActivity {
         //ViewGroup main_view = (ViewGroup) findViewById(R.id.activity_receita);
         //activity_receita.addView(viewGroup);
 //        ((ViewGroup)viewGroup.getParent()).removeView(viewGroup);
-        this.setContentView(activity_receita);
+        this.setContentView(activityView);
 
     }
 
@@ -424,7 +442,7 @@ public class ReceitaActivity extends AppCompatActivity {
             Parte_da_Receita receita_subparte = receita.getSubpartes().get(s);
 
             LinearLayout subparteLayout = new LinearLayout(this);
-            subparteLayout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+            subparteLayout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             subparteLayout.setOrientation(LinearLayout.VERTICAL);
 
             TextView nome_da_subparte = new TextView(this);
@@ -435,6 +453,9 @@ public class ReceitaActivity extends AppCompatActivity {
 
             TextView ingredientes_label_txtView = new TextView(this);
             ingredientes_label_txtView.setText("Ingredientes");
+            ingredientes_label_txtView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+            ingredientes_label_txtView.setTextColor(Color.MAGENTA);
+            ingredientes_label_txtView.setGravity(Gravity.CENTER);
 
             // ADICIONANDO A VIEW
             subparteLayout.addView(ingredientes_label_txtView);
@@ -447,18 +468,27 @@ public class ReceitaActivity extends AppCompatActivity {
             ingredientesLayout.setOrientation(LinearLayout.VERTICAL);
 
             // PEGANDO A LISTA DE INGREDIENTES
+            ListView ingredientesListView = new ListView(context);
+            List<String> ings_text = new ArrayList<>();
             for(int i=0;i<receita_subparte.getIngredientes().size();i++){
                 Ingrediente ingrediente = receita_subparte.getIngredientes().get(i);
 
                 TextView ingrediente_TxtView = new TextView(this);
 
-                String text = ingrediente.getQuantidade() + " " + ingrediente.getNome_ingrediente();
-                ingrediente_TxtView.setText(text);
+                //String text = ingrediente.getQuantidade() + " " + ingrediente.getNome_ingrediente();
+                String text = ingrediente.getNome_ingrediente();
+                ings_text.add(text);
+                //ingrediente_TxtView.setText(text);
 
                 // ADICIONANDO A VIEW
-                ingredientesLayout.addView(ingrediente_TxtView);
+                //ingredientesLayout.addView(ingrediente_TxtView);
 
             }
+
+            ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1, ings_text);
+            ingredientesListView.setAdapter(modeAdapter);
+
+            ingredientesLayout.addView(ingredientesListView);
 
             // ADICIONANDO A VIEW
             subparteLayout.addView(ingredientesLayout);
@@ -466,6 +496,9 @@ public class ReceitaActivity extends AppCompatActivity {
 
             TextView modo_de_preparo_label_txtView = new TextView(this);
             modo_de_preparo_label_txtView.setText("Modo de preparo");
+            modo_de_preparo_label_txtView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+            modo_de_preparo_label_txtView.setTextColor(Color.MAGENTA);
+            modo_de_preparo_label_txtView.setGravity(Gravity.CENTER);
 
             // ADICIONANDO A VIEW
             subparteLayout.addView(modo_de_preparo_label_txtView);
@@ -478,32 +511,27 @@ public class ReceitaActivity extends AppCompatActivity {
             modo_de_preparoLayout.setOrientation(LinearLayout.VERTICAL);
 
             // PEGANDO A LISTA DE PASSOS DA RECEITA
+            ListView preparoListView = new ListView(context);
+            List<String> passos_text = new ArrayList<>();
             for(int p=0;p<receita_subparte.getModo_de_preparo().size();p++){
                 Passo_da_Receita passo_da_receita = receita_subparte.getModo_de_preparo().get(p);
 
                 TextView passo_TxtView = new TextView(this);
 
                 String text = passo_da_receita.getDescricao();
-                passo_TxtView.setText(text);
+                passos_text.add(text);
+                //passo_TxtView.setText(text);
 
                 // ADICIONANDO A VIEW
-                modo_de_preparoLayout.addView(passo_TxtView);
+                //modo_de_preparoLayout.addView(passo_TxtView);
 
             }
+            ArrayAdapter<String> preparoAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1, passos_text);
+            preparoListView.setAdapter(preparoAdapter);
 
             // ADICIONANDO A VIEW
-            subparteLayout.addView(modo_de_preparoLayout);
+            subparteLayout.addView(preparoListView);
 
-
-            //RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) activity_receita.getLayoutParams();
-//            params.addRule(RelativeLayout.BELOW, R.id.nome_receita_div);
-
-//            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT,
-//                    LayoutParams.MATCH_PARENT);
-            //params.addRule(RelativeLayout.BELOW, R.id.nome_receita_div);
-
-            //viewGroup.addView(subparteLayout, params);
-            //activity_receita.addView(subparteLayout);
             subpartesView.addView(subparteLayout);
         }
 
@@ -514,9 +542,13 @@ public class ReceitaActivity extends AppCompatActivity {
 
     public ViewGroup settingViewProgramatically(Context context, Receita receita){
 
-        LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View activityView = inflater.inflate(R.layout.activity_receita, null);
-        LinearLayout activity_receita = (LinearLayout) activityView.findViewById(R.id.activity_receita);
+//        LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        View activityView = inflater.inflate(R.layout.activity_receita, null);
+//        LinearLayout activity_receita = (LinearLayout) activityView.findViewById(R.id.activity_receita);
+
+        LinearLayout activity_receita = new LinearLayout(context);
+        activity_receita.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        activity_receita.setOrientation(LinearLayout.VERTICAL);
 
 
         LinearLayout titleLayout = new LinearLayout(this);

@@ -105,10 +105,6 @@ public class ReceitaFragment extends Fragment {
 
         // Tentando pegar as receitas do servidor aqui
         Log.v(TAG, "INDO PEGAR AS RECEITAS");
-//        GetReceitasTask receitasTask = new GetReceitasTask(getActivity());
-//        //receitasTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-//        receitasTask.execute();
-
         getReceitasVolley();
     }
 
@@ -329,7 +325,6 @@ public class ReceitaFragment extends Fragment {
                 return null;
 
             }
-
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
