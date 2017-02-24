@@ -114,25 +114,27 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL(CREATE_PARTE_DA_RECEITA_TABLE);
 
         String CREATE_PARTE_INGREDIENTES_TABLE = "CREATE TABLE " + TABLE_PARTE_INGREDIENTES + "(" + PARTE_INGREDIENTES_ID + " INTEGER PRIMARY KEY, " +
-                PARTE_INGREDIENTES_INGREDIENTE_ID + " INTEGER NOT NULL " + PARTE_INGREDIENTES_PARTE_ID + " INTEGER NOT NULL " + ")";
+                PARTE_INGREDIENTES_INGREDIENTE_ID + " INTEGER NOT NULL, " + PARTE_INGREDIENTES_PARTE_ID + " INTEGER NOT NULL " + ")";
 
         db.execSQL(CREATE_PARTE_INGREDIENTES_TABLE);
 
         String CREATE_RECEITA_TABLE = "CREATE TABLE " + TABLE_RECEITA + "(" + ID_RECEITA + " INTEGER PRIMARY KEY, " +
-                NOME_RECEITA + " VARCHAR(100) NOT NULL " + CATEGORIA_RECEITA + " VARCHAR(100) NOT NULL " +
-                TEMPO_PREPARO_RECEITA + " INTEGER NOT NULL " + NIVEL_DIFICULDADE_RECEITA + " INTEGER NOT NULL " + ")";
+                NOME_RECEITA + " VARCHAR(100) NOT NULL, " + CATEGORIA_RECEITA + " VARCHAR(100) NOT NULL, " +
+                TEMPO_PREPARO_RECEITA + " INTEGER NOT NULL, " + NIVEL_DIFICULDADE_RECEITA + " INTEGER NOT NULL " + ")";
 
         db.execSQL(CREATE_RECEITA_TABLE);
 
         String CREATE_RECEITA_PARTES_TABLE = "CREATE TABLE " + TABLE_RECEITA_PARTES + "(" + RECEITA_PARTES_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                RECEITA_PARTES_ID_PARTE + " INTEGER NOT NULL " + RECEITA_PARTES_ID_RECEITA + " INTEGER NOT NULL " + ")";
+                RECEITA_PARTES_ID_PARTE + " INTEGER NOT NULL, " + RECEITA_PARTES_ID_RECEITA + " INTEGER NOT NULL " + ")";
 
         db.execSQL(CREATE_RECEITA_PARTES_TABLE);
 
         String CREATE_PARTE_MODO_DE_PREPARO_TABLE = "CREATE TABLE " + TABLE_PARTE_MODO_DE_PREPARO + "(" + PARTE_MODO_DE_PREPARO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                PARTE_MODO_DE_PREPARO_ID_PARTE + " INTEGER NOT NULL " + PARTE_MODO_DE_PREPARO_ID_PASSO + " INTEGER NOT NULL " + ")";
+                PARTE_MODO_DE_PREPARO_ID_PARTE + " INTEGER NOT NULL, " + PARTE_MODO_DE_PREPARO_ID_PASSO + " INTEGER NOT NULL " + ")";
 
         db.execSQL(CREATE_PARTE_MODO_DE_PREPARO_TABLE);
+
+        Log.v("TAG", "CRIOU O BANDO E TABELAS");
 
     }
 
@@ -511,6 +513,42 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
         return receita_row_id;
+    }
+
+
+    public ArrayList<Receita> getAllReceitas(){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        //String selectQuery = "SELECT * FROM " + TABLE_USER + " WHERE " + USER_ID + " = " + user_id;
+        String selectQuery = "SELECT * FROM " + TABLE_RECEITA;
+
+        Log.v("GET_ALL_RECS DATABASE", selectQuery);
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        ArrayList<Receita> todas_receitas = new ArrayList<>();
+        if (cursor != null && cursor.moveToFirst()){
+
+            do {
+
+                int receita_id = cursor.getInt(cursor.getColumnIndex(ID_RECEITA));
+                String nome_receita = cursor.getString(cursor.getColumnIndex(NOME_RECEITA));
+                String categoria_receita = cursor.getString(cursor.getColumnIndex(CATEGORIA_RECEITA));
+                int tempo_preparo_receita = cursor.getInt(cursor.getColumnIndex(TEMPO_PREPARO_RECEITA));
+                int nivel_de_dificuldade = cursor.getInt(cursor.getColumnIndex(NIVEL_DIFICULDADE_RECEITA));
+
+                // COM O ID DA RECEITA EU VOU PEGAR TODAS AS PARTES DELA NA TABELA
+                ArrayList<Parte_da_Receita> partes_receita = getAllPartesDaReceita(receita_id);
+
+                Receita receita = new Receita(receita_id, nome_receita, categoria_receita, tempo_preparo_receita, nivel_de_dificuldade, partes_receita);
+                // adding to tags list
+                todas_receitas.add(receita);
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+
+        return todas_receitas;
     }
 
 

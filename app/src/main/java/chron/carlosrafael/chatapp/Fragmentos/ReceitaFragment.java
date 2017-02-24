@@ -37,6 +37,7 @@ import chron.carlosrafael.chatapp.Models.Receita;
 import chron.carlosrafael.chatapp.R;
 import chron.carlosrafael.chatapp.Fragmentos.dummy.DummyContent;
 import chron.carlosrafael.chatapp.Fragmentos.dummy.DummyContent.DummyItem;
+import chron.carlosrafael.chatapp.Utils.DatabaseHandler;
 import chron.carlosrafael.chatapp.Utils.ServerRequests;
 
 import java.io.BufferedReader;
@@ -78,6 +79,9 @@ public class ReceitaFragment extends Fragment {
     private List<Receita> receitas = new ArrayList<>();
     private ReceitaRecyclerViewAdapter adapter;
 
+
+    private DatabaseHandler databaseHandler;
+
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -103,9 +107,13 @@ public class ReceitaFragment extends Fragment {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }
 
+        databaseHandler = DatabaseHandler.getDatabaseHandler(getContext());
+
         // Tentando pegar as receitas do servidor aqui
         Log.v(TAG, "INDO PEGAR AS RECEITAS");
-        getReceitasVolley();
+        //getReceitasVolley();
+        //getReceitasLocal(adapter);
+
     }
 
     @Override
@@ -126,6 +134,10 @@ public class ReceitaFragment extends Fragment {
             }
             recyclerView.setAdapter(adapter);
         }
+
+        Log.v(TAG, "INDO PEGAR AS RECEITAS");
+        //getReceitasVolley();
+        getReceitasLocal(adapter);
 
         if (!CREATED_FOR_THE_FIRST_TIME) {
             // Avisa para o HomeActivity que o fragment acabou de ser criado
@@ -188,7 +200,7 @@ public class ReceitaFragment extends Fragment {
                                     // IRA ARMAZENAR OS INGREDIENTES DA SUBPARTE
                                     ArrayList<Ingrediente> ingredientesSubparte = new ArrayList<>();
 
-                                    for(int i=0;i<ingredientesLista.length();i++ ){
+                                    for(int i=0;i<ingredientesLista.length();i++){
                                         JSONObject ingredienteJSON = ingredientesLista.getJSONObject(i);
 
                                         String quantidade = ingredienteJSON.getString("quantidade");
@@ -197,6 +209,9 @@ public class ReceitaFragment extends Fragment {
 
                                         // CRIANDO OBJETO INGREDIENTE
                                         Ingrediente ingrediente = new Ingrediente(ingrediente_id, nome_ingrediente, quantidade);
+//                                        // ADICIONANDO INGREDIENTES AO BANCO
+//                                        databaseHandler.addIngrediente(ingrediente);
+
                                         ingredientesSubparte.add(ingrediente);
                                     }
 
@@ -218,6 +233,9 @@ public class ReceitaFragment extends Fragment {
 
                                         // CRIANDO OBJETO PASSO_DA_RECEITA
                                         Passo_da_Receita passo_preparo = new Passo_da_Receita(passo_preparo_id, descricao_passo_preparo);
+//                                        // ADICIONANDO PASSO AO BANCO
+//                                        databaseHandler.addPassoDaReceita(passo_preparo);
+
                                         modo_de_preparoSubparte.add(passo_preparo);
                                     }
 
@@ -225,12 +243,18 @@ public class ReceitaFragment extends Fragment {
 
                                     // CRIANDO O PARTE_DA_RECEITA OBJECT
                                     Parte_da_Receita parte_da_receita = new Parte_da_Receita(subparte_id,ingredientesSubparte, modo_de_preparoSubparte, nome_da_parte);
+//                                    // ADICIONANDO PARTE AO BANCO
+//                                    databaseHandler.addParteDaReceita(parte_da_receita);
+
                                     subpartesDaReceita.add(parte_da_receita);
 
 
                                 }
                                 // ADICIONADO TODAS AS PARTES NO ARRAYLIST, CRIAMOS O OBJETO RECEITA
                                 Receita receita = new Receita(id_receita, nome_receita, categoria, tempo_de_preparo, nivel_de_dificuldade, subpartesDaReceita);
+                                // ADICIONANDO RECEITAS AO BANCO
+                                databaseHandler.addReceita(receita);
+
                                 receitasRetornadas.add(receita);
 
                             } catch (JSONException e) {
@@ -257,6 +281,14 @@ public class ReceitaFragment extends Fragment {
                 });
         // Add the request to the RequestQueue.
         queue.add(jsArrayRequest);
+    }
+
+
+    public void getReceitasLocal(ReceitaRecyclerViewAdapter adapter){
+
+        ArrayList<Receita> todas_receitas = databaseHandler.getAllReceitas();
+
+        adapter.refresh(todas_receitas);
     }
 
     @Override
