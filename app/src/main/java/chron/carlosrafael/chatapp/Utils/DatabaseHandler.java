@@ -552,5 +552,33 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
 
+    public ArrayList<Integer> getReceitasIds(){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        //String selectQuery = "SELECT * FROM " + TABLE_USER + " WHERE " + USER_ID + " = " + user_id;
+        String selectQuery = "SELECT " + ID_RECEITA + " FROM " + TABLE_RECEITA ;
+
+        Log.v("GET_IDS REC DATABASE", selectQuery);
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        ArrayList<Integer> receitas_ids = new ArrayList<>();
+        if (cursor != null && cursor.moveToFirst()){
+
+            do {
+
+                int receita_id = cursor.getInt(cursor.getColumnIndex(ID_RECEITA));
+
+                receitas_ids.add(receita_id);
+
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+
+        return receitas_ids;
+    }
+
+
 
 }
