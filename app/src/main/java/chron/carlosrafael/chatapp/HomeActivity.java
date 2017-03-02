@@ -61,6 +61,7 @@ import chron.carlosrafael.chatapp.Fragmentos.dummy.DummyContent;
 import chron.carlosrafael.chatapp.Models.Chat;
 import chron.carlosrafael.chatapp.Models.ChatFirebase;
 import chron.carlosrafael.chatapp.Models.Receita;
+import chron.carlosrafael.chatapp.receitasList.ReceitasListFragment;
 
 import static chron.carlosrafael.chatapp.HomeActivity.BASE_URL;
 
@@ -135,7 +136,7 @@ public class HomeActivity extends AppCompatActivity implements HomeFragment.OnFr
 
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new HomeFragment(), "Home");
-        adapter.addFragment(new ReceitaFragment(), "Receita");
+        adapter.addFragment(new ReceitasListFragment(), "Receita");
         CoachChatFragment coachChatFragment = new CoachChatFragment();
         adapter.addFragment(coachChatFragment, "Coach Chat");
         GrupoFragment grupoFragment = new GrupoFragment();

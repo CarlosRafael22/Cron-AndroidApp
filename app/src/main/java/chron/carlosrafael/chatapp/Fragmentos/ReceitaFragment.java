@@ -39,6 +39,7 @@ import chron.carlosrafael.chatapp.Fragmentos.dummy.DummyContent;
 import chron.carlosrafael.chatapp.Fragmentos.dummy.DummyContent.DummyItem;
 import chron.carlosrafael.chatapp.Utils.DatabaseHandler;
 import chron.carlosrafael.chatapp.Utils.ServerRequests;
+import chron.carlosrafael.chatapp.receitasList.ReceitasListFragment;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -64,7 +65,7 @@ public class ReceitaFragment extends Fragment {
     private static final String ARG_COLUMN_COUNT = "column-count";
     // TODO: Customize parameters
     private int mColumnCount = 1;
-    private OnListFragmentInteractionListener mListener;
+    private ReceitasListFragment.OnListFragmentInteractionListener mListener;
 
     // Serve para avisar o HomeActivity que o fragmento foi criado
     private Interfaces.OnFragmentCreatedListener createdFragListener;
@@ -121,7 +122,18 @@ public class ReceitaFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_receita_list, container, false);
 
-        adapter = new ReceitaRecyclerViewAdapter(receitas, mListener);
+
+        /**
+         * Listener for clicks on notes in the RecyclerView.
+         */
+        ReceitaRecyclerViewAdapter.ReceitaClickedItemListener receitaClickedItemListener = new ReceitaRecyclerViewAdapter.ReceitaClickedItemListener() {
+            @Override
+            public void onReceitaClicked(Receita clickedReceita) {
+                //presenterActionsListener.showReceita(clickedReceita);
+            }
+        };
+
+        adapter = new ReceitaRecyclerViewAdapter(receitas, mListener, receitaClickedItemListener);
 
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -294,8 +306,8 @@ public class ReceitaFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof ReceitaFragment.OnListFragmentInteractionListener) {
-            mListener = (ReceitaFragment.OnListFragmentInteractionListener) context;
+        if (context instanceof ReceitasListFragment.OnListFragmentInteractionListener) {
+            mListener = (ReceitasListFragment.OnListFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnListFragmentInteractionListener");

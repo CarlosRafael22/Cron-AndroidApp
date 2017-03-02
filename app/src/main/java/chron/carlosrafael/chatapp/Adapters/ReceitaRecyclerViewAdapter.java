@@ -4,7 +4,6 @@ package chron.carlosrafael.chatapp.Adapters;
  * Created by CarlosRafael on 20/02/2017.
  */
 
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +16,7 @@ import chron.carlosrafael.chatapp.Fragmentos.ReceitaFragment;
 import chron.carlosrafael.chatapp.Fragmentos.dummy.DummyContent;
 import chron.carlosrafael.chatapp.Models.Receita;
 import chron.carlosrafael.chatapp.R;
+import chron.carlosrafael.chatapp.receitasList.ReceitasListFragment;
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link DummyContent.DummyItem} and makes a call to the
@@ -26,11 +26,15 @@ import chron.carlosrafael.chatapp.R;
 public class ReceitaRecyclerViewAdapter extends RecyclerView.Adapter<ReceitaRecyclerViewAdapter.ViewHolder> {
 
     private List<Receita> mReceitas;
-    private final ReceitaFragment.OnListFragmentInteractionListener mListener;
+    private final ReceitasListFragment.OnListFragmentInteractionListener mListener;
 
-    public ReceitaRecyclerViewAdapter(List<Receita> mReceitas, ReceitaFragment.OnListFragmentInteractionListener listener) {
+    // Listener para chamar o metodo showReceita do Presenter quando uma receita do RecyclerView for clicada
+    private final ReceitaClickedItemListener receitaClickedItemListener;
+
+    public ReceitaRecyclerViewAdapter(List<Receita> mReceitas, ReceitasListFragment.OnListFragmentInteractionListener listener, ReceitaClickedItemListener receitaListener) {
         this.mReceitas = mReceitas;
         this.mListener = listener;
+        this.receitaClickedItemListener = receitaListener;
     }
 
     @Override
@@ -55,6 +59,9 @@ public class ReceitaRecyclerViewAdapter extends RecyclerView.Adapter<ReceitaRecy
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
                     mListener.onListFragmentInteraction(holder.receita);
+
+                    // Avisando para a View que clicou para chamar showReceita
+                    receitaClickedItemListener.onReceitaClicked(holder.receita);
                 }
             }
         });
@@ -92,6 +99,12 @@ public class ReceitaRecyclerViewAdapter extends RecyclerView.Adapter<ReceitaRecy
         public String toString() {
             return super.toString() + " '" + nome_da_receitaView.getText() + "'";
         }
+    }
+
+    // Interface para ao clicar chamar o metodo do Presenter para pegar essa receita especifica (showReceitaDetail)
+    public interface ReceitaClickedItemListener {
+
+        void onReceitaClicked(Receita receitaClicked);
     }
 }
 
